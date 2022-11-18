@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+
+  notebook:
+    container_name: notebook
+    build:
+      context: ./jupyter_notebook
+      dockerfile: Dockerfile
+    volumes:
+      - "./jupyter_notebook:/notebook"
+    ports:
+      - "8888:8888"
+
+  db:
+    image: postgres:13
+    container_name: db
+    environment:
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ny_taxi
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./postgres/data:/var/lib/postgresql/data"
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "8080:80"
+
+#  app:
+#    build:
+#      context: ./app
+#      dockerfile: Dockerfile
+#    container_name: app
+#    volumes:
+#      - "./app:/app"
+#    depends_on:
+#      - db
