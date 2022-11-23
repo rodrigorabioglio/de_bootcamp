@@ -1,6 +1,6 @@
 FROM python:3.9
 
-RUN pip install pandas sqlalchemy jupyter psycopg2 pyarrow
+RUN pip install pandas sqlalchemy jupyter psycopg2 pyarrow datetime
 
 WORKDIR /notebook
 
