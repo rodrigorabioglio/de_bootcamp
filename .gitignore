@@ -1,2 +1,4 @@
 postgres/
 *.parquet
+*.zip
+*.csv
