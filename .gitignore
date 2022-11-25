@@ -1,4 +1,6 @@
 postgres/
+airflow/logs
 *.parquet
 *.zip
 *.csv
+*.db

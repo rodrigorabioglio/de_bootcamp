@@ -1,10 +1,10 @@
 FROM python:3.9
 
-RUN pip install pandas sqlalchemy psycopg2 pyarrow
-
 WORKDIR /app
 
-COPY . .
+COPY requirements.txt requirements.txt
+
+RUN pip install -r requirements.txt
 
 ENTRYPOINT ["python", "ingest_taxi_data.py"]
 

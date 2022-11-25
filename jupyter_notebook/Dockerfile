@@ -1,9 +1,9 @@
 FROM python:3.9
 
-RUN pip install pandas sqlalchemy jupyter psycopg2 pyarrow datetime
-
 WORKDIR /notebook
 
-COPY . .
+COPY requirements.txt requirements.txt
+
+RUN pip install -r requirements.txt
 
 ENTRYPOINT /bin/sh -c 'jupyter notebook --no-browser --allow-root --ip 0.0.0.0'
