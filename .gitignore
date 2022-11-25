@@ -4,3 +4,4 @@ airflow/logs
 *.zip
 *.csv
 *.db
+*.log
