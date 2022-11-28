@@ -20,8 +20,8 @@ local_workflow = DAG(
     schedule_interval="@daily",
     start_date=datetime(2022, 10, 31),
     end_date=datetime(2022, 11, 27),
-    max_active_tasks=2,
-    max_active_runs=2
+    max_active_tasks=1,
+    max_active_runs=1
 )
 
 with local_workflow:
