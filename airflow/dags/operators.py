@@ -4,6 +4,8 @@ from pyarrow import concat_tables
 import pyarrow.csv as pv
 import pyarrow.parquet as pq
 
+import psycopg2
+
 from const import execution_dict
 
 import sqlalchemy
@@ -14,8 +16,8 @@ import shutil
 import os
 import re
 
-def download_files_and_unzip( path, filename='temp.zip', **kwargs):
 
+def download_files_and_unzip(path, filename='temp.zip', **kwargs):
     election_round_code = ['051020221321', '311020221535']
     state = execution_dict[kwargs['ds']]
     filename = f'{state}_{filename}'
@@ -35,7 +37,7 @@ def download_files_and_unzip( path, filename='temp.zip', **kwargs):
 
         shutil.unpack_archive(path + filename, path)
 
-        os.system(f'rm {path}*.pdf {path}{filename}' )
+        os.system(f'rm {path}*.pdf {path}{filename}')
 
 
 def csv_to_parquet(path, delimiter=';', encoding='Latin 1', **kwargs):
@@ -67,7 +69,6 @@ def csv_to_parquet(path, delimiter=';', encoding='Latin 1', **kwargs):
 
 
 def prepare_data(path, **kwargs):
-
     cols = ['TS_GERACAO', 'NR_TURNO', 'SG_UF', 'CD_MUNICIPIO', 'NM_MUNICIPIO', 'NR_ZONA',
             'NR_SECAO', 'NR_LOCAL_VOTACAO', 'CD_CARGO_PERGUNTA',
             'DS_CARGO_PERGUNTA', 'NR_PARTIDO', 'SG_PARTIDO', 'NM_PARTIDO',
@@ -79,18 +80,34 @@ def prepare_data(path, **kwargs):
         path = path + '/'
 
     state = execution_dict[kwargs['ds']]
-    filepath = path+state+'_dois_turnos.parquet'
+    files = [f for f in os.listdir(path) if re.search(f't_{state}_\d+.csv', f)]
 
-    df = pd.read_parquet(filepath)
+    list_df = []
+
+    for f in files:
+        tmp = pd.read_csv(
+            path + f,
+            sep=';',
+            encoding='Latin 1'
+        )
+
+        list_df.append(tmp)
+
+    df = pd.concat(list_df)
 
     prepared = df.assign(
-        TS_GERACAO=lambda df: pd.to_datetime(df.DT_GERACAO + ' ' + df.HH_GERACAO.astype(str))
+        TS_GERACAO=lambda df: pd.to_datetime(df.DT_GERACAO + ' ' + df.HH_GERACAO.astype(str)),
+        DT_BU_RECEBIDO=lambda df: pd.to_datetime(df.DT_BU_RECEBIDO)
     ) \
         .drop(columns=['DT_GERACAO', 'HH_GERACAO']) \
         [cols].rename(columns=lambda c: c.lower().strip())
 
-    prepared.to_parquet(filepath)
+    print(prepared.shape[0])
+    filepath = path + state + '_dois_turnos'
+    prepared.to_csv(filepath, sep=';', encoding='utf-8', index=False)
+    del prepared
     print('prepared data was written')
+
 
 def upload_parquet_to_postgres(
         connect_dict,
@@ -98,13 +115,12 @@ def upload_parquet_to_postgres(
         table_name,
         if_exists='append',
         batch_size=10 ** 5,
-        **kwargs ):
-
+        **kwargs):
     if not path.endswith('/'):
         path = path + '/'
 
     state = execution_dict[kwargs['ds']]
-    filepath = path + state + '_dois_turnos.parquet'
+    filepath = path + state + '_dois_turnos'
 
     user = connect_dict['user']
     password = connect_dict['password']
@@ -112,22 +128,41 @@ def upload_parquet_to_postgres(
     port = connect_dict['port']
     dbname = connect_dict['dbname']
 
-    engine = sqlalchemy.create_engine(f"postgresql://{user}:{password}@{host}:{port}/{dbname}")
+    conn = psycopg2.connect(
+        host=host,
+        port=port,
+        database=dbname,
+        user=user,
+        password=password)
 
-    parquet_file = pq.ParquetFile(filepath)
+    cur = conn.cursor()
 
-    for batch in parquet_file.iter_batches(batch_size):
-        to_db = batch.to_pandas()
-        to_db.to_sql(table_name, con=engine, if_exists=if_exists)
-        print(f"sent one chunk")
+    check_table_query = f"""
+    SELECT EXISTS(SELECT 1 FROM information_schema.tables 
+              WHERE table_catalog='{dbname}' AND 
+                    table_schema='public' AND 
+                    table_name='{table_name}')
+    """
+    cur.execute(check_table_query)
+    table_exists = cur.fetchone()[0]
 
-def delete_csv(path,**kwargs):
+    if not table_exists:
+        table_schema = pd.read_csv(filepath, sep=';', nrows=1).head(0)
+        engine = sqlalchemy.create_engine(f"postgresql://{user}:{password}@{host}:{port}/{dbname}")
+        table_schema.to_sql(table_name, con=engine, if_exists=if_exists, index=False)
 
+    with open(filepath, 'r') as f:
+        command = f"COPY {table_name} FROM STDIN WITH CSV HEADER DELIMITER ';' ENCODING 'utf-8' NULL '' "
+        cur.copy_expert(command, f)
+        conn.commit()
+        cur.close()
+
+def delete_files(path, **kwargs):
     if not path.endswith('/'):
         path = path + '/'
 
     state = execution_dict[kwargs['ds']]
-    files = [f for f in os.listdir(path) if re.search(f't_{state}_\d+.csv', f)]
+    files = [f for f in os.listdir(path) if re.search(f'{state}_', f)]
 
     for f in files:
         os.system(f'rm {path}{f}')

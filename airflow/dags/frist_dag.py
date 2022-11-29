@@ -10,7 +10,7 @@ from operators import (
     csv_to_parquet,
     prepare_data,
     upload_parquet_to_postgres,
-    delete_csv
+    delete_files
 )
 
 from const import connect_dict, DATA_DIR
@@ -35,14 +35,14 @@ with local_workflow:
         )
     )
 
-    csv_to_parquet_task = PythonOperator(
-        task_id="csv_to_parquet",
-        python_callable=csv_to_parquet,
-        provide_context=True,
-        op_kwargs=dict(
-            path=DATA_DIR,
-        )
-    )
+    # csv_to_parquet_task = PythonOperator(
+    #     task_id="csv_to_parquet",
+    #     python_callable=csv_to_parquet,
+    #     provide_context=True,
+    #     op_kwargs=dict(
+    #         path=DATA_DIR,
+    #     )
+    # )
 
     prepare_data_task = PythonOperator(
         task_id="prepare_data",
@@ -64,13 +64,13 @@ with local_workflow:
         )
     )
 
-    delete_csv_task = PythonOperator(
-        task_id='delete_csv',
-        python_callable=delete_csv,
+    delete_files_task = PythonOperator(
+        task_id='delete_files',
+        python_callable=delete_files,
         provide_context=True,
         op_kwargs=dict(
             path=DATA_DIR,
         )
     )
 
-    download_files_task >> csv_to_parquet_task >> delete_csv_task >> prepare_data_task >> upload_parquet_to_postgres_task
+    download_files_task >> prepare_data_task >> upload_parquet_to_postgres_task >> delete_files_task
