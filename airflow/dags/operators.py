@@ -26,8 +26,11 @@ def download_files_and_unzip(path, filename='temp.zip', **kwargs):
 
     for i, c in enumerate(election_round_code, 1):
 
+        # defining user-agent to bypass website bot gates
+        headers = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36'}
         url = f'https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2022/buweb/bweb_{i}t_{state}_{c}.zip'
-        r = requests.get(url)
+        print(url)
+        r = requests.get(url=url,headers=headers)   
 
         if not path.endswith('/'):
             path = path + '/'

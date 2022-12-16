@@ -1,0 +1,3 @@
+from spark_operators import prepare_data_and_write_to_postgres
+
+prepare_data_and_write_to_postgres()

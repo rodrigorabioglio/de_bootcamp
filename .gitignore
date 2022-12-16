@@ -2,9 +2,16 @@ postgres/
 pg_admin/
 airflow/logs
 airflow/data
+/__pycache__
 *.parquet
 *.zip
 *.csv
 *.db
 *.log
 *.pdf
+.jupyter
+.ipython
+.local
+*.sqlite
+.cache
+.pyc
