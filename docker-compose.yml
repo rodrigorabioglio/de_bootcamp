@@ -24,7 +24,8 @@ services:
       - "5432:5432"
     networks:
       - default
-      - airflow
+      # - airflow
+      - spark
 
   pgadmin:
     container_name: pgadmin
@@ -51,3 +52,6 @@ networks:
   airflow:
     external:
       name: airflow_default
+  spark:
+    external:
+      name: pyspark-notebook_default
