@@ -15,5 +15,3 @@ RUN export JAVA_HOME
 USER airflow
 
 RUN pip install pyspark==3.3.1 apache-airflow-providers-apache-spark
-
-

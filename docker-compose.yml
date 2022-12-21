@@ -24,8 +24,8 @@ services:
       - "5432:5432"
     networks:
       - default
-      # - airflow
-      - spark
+      - airflow
+      # - spark
 
   pgadmin:
     container_name: pgadmin
@@ -38,15 +38,20 @@ services:
     ports:
       - "8081:80"
 
-#  app:
-#    container_name: app
-#    build:
-#      context: ./app
-#      dockerfile: Dockerfile
-#    volumes:
-#      - "./app:/app"
-#    depends_on:
-#      - db
+  metabase:
+    container_name: metabase
+    image: metabase/metabase:v0.45.1
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=ny_taxi
+      - MB_DB_PORT=5432
+      - MB_DB_USER=postgres
+      - MB_DB_PASS=postgres
+      - MB_DB_HOST=db
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
 
 networks:
   airflow:

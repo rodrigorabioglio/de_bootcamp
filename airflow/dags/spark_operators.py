@@ -3,7 +3,7 @@ from pyspark.sql import (
     functions as F,
 )
 
-from const import SCHEMA, COLS, HOME_DIR, DATA_DIR
+from const import SCHEMA, COLS, JAR_DIR, DATA_DIR, JAR_DIR
 
 def prepare_data():
 
@@ -38,8 +38,8 @@ def write_to_postgres():
         .builder\
         .appName("IngestToPG")\
         .master("local[*]")\
-        .config("spark-jars",f"{HOME_DIR}/postgresql-42.5.1.jar")\
-        .config("spark.driver.extraClassPath",f"{HOME_DIR}/postgresql-42.5.1.jar")\
+        .config("spark-jars",f"{JAR_DIR}/postgresql-42.5.1.jar")\
+        .config("spark.driver.extraClassPath",f"{JAR_DIR}/postgresql-42.5.1.jar")\
         .getOrCreate()
 
     prepared.write.format("jdbc")\
@@ -57,8 +57,8 @@ def prepare_data_and_write_to_postgres():
         .builder\
         .appName("IngestToPG")\
         .master("local[*]")\
-        .config("spark-jars",f"{HOME_DIR}/postgresql-42.5.1.jar")\
-        .config("spark.driver.extraClassPath",f"{HOME_DIR}/postgresql-42.5.1.jar")\
+        .config("spark.jars",f"{JAR_DIR}/postgresql-42.5.1.jar")\
+        .config("spark.driver.extraClassPath",f"{JAR_DIR}/postgresql-42.5.1.jar")\
         .getOrCreate()
 
     # read data with schema

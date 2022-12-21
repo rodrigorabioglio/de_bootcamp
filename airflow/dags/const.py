@@ -1,6 +1,7 @@
 from pyspark.sql import types
 
 DATA_DIR = "/opt/airflow/data"
+JAR_DIR = "/opt/airflow/jars"
 HOME_DIR = "/opt/airflow"
 
 connect_dict = dict(

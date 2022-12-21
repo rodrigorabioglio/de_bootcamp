@@ -1,6 +1,8 @@
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
+from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
+
 
 from const import HOME_DIR, DATA_DIR
 
@@ -32,6 +34,13 @@ with local_workflow:
         task_id = "spark-job",
         bash_command=f"python {HOME_DIR}/dags/spark_test.py"
     )
+
+    # spark_job_task = SparkSubmitOperator(
+    #     task_id = "spark-job",
+    #     conn_id = 'spark-test',
+    #     application = f"{HOME_DIR}/dags/spark_test.py"
+    # )
+
 
     delete_files_task = PythonOperator(
         task_id='delete_files',
