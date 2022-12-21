@@ -9,9 +9,11 @@ __pycache__/
 *.db
 *.log
 *.pdf
-.jupyter
-.ipython
+*.jupyter
+*.ipython
 .local
 *.sqlite
-.cache
-.pyc
+*.cache
+*.pyc
+*.jar
+.DS_Store
